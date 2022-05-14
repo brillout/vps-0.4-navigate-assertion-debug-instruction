@@ -1,3 +1,5 @@
+// node_modules/vite-plugin-ssr/dist/esm/client/router/useClientRouter.js
+
 import { assert, assertUsage, getUrlFull, getUrlFullWithoutHash, hasProp, isBrowser, objectAssign, throttle, } from './utils';
 import { navigationState } from '../navigationState';
 import { getPageContext } from './getPageContext';
@@ -14,6 +16,7 @@ export { navigate };
 setupNativeScrollRestoration();
 let onPageTransitionStart;
 function useClientRouter() {
+    console.log('useClientRouter()')
     autoSaveScrollPosition();
     onLinkClick((url, { keepScrollPosition }) => {
         const scrollTarget = keepScrollPosition ? 'preserve-scroll' : 'scroll-to-top-or-hash';
@@ -22,7 +25,7 @@ function useClientRouter() {
     onBrowserHistoryNavigation((scrollTarget) => {
         fetchAndRender(scrollTarget);
     });
-    navigateFunction = async (url, { keepScrollPosition, overwriteLastHistoryEntry, }) => {
+    globalThis.__navigateFunction = async (url, { keepScrollPosition, overwriteLastHistoryEntry, }) => {
         const scrollTarget = keepScrollPosition ? 'preserve-scroll' : 'scroll-to-top-or-hash';
         await fetchAndRender(scrollTarget, url, overwriteLastHistoryEntry);
     };
@@ -116,8 +119,8 @@ function useClientRouter() {
         initialRenderIsDone = true;
     }
 }
-let navigateFunction;
 async function navigate(url, { keepScrollPosition = false, overwriteLastHistoryEntry = false } = {}) {
+    console.log('navigate()')
     assertUsage(isBrowser(), '[`navigate(url)`] The `navigate(url)` function is only callable in the browser but you are calling it in Node.js.');
     assertUsage(url, '[navigate(url)] Missing argument `url`.');
     assertUsage(typeof url === 'string', '[navigate(url)] Argument `url` should be a string (but we got `typeof url === "' + typeof url + '"`.');
@@ -128,8 +131,8 @@ async function navigate(url, { keepScrollPosition = false, overwriteLastHistoryE
         typeof overwriteLastHistoryEntry +
         '"`.');
     assertUsage(url.startsWith('/'), '[navigate(url)] Argument `url` should start with a leading `/`.');
-    assertUsage(navigateFunction, '[navigate()] You need to call `useClientRouter()` before being able to use `navigate()`.');
-    await navigateFunction(url, { keepScrollPosition, overwriteLastHistoryEntry });
+    assertUsage(globalThis.__navigateFunction, '[navigate()] You need to call `useClientRouter()` before being able to use `navigate()`.');
+    await globalThis.__navigateFunction(url, { keepScrollPosition, overwriteLastHistoryEntry });
 }
 function onLinkClick(callback) {
     document.addEventListener('click', onClick);
